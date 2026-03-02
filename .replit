@@ -1,22 +1,10 @@
-modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
-hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
-
+modules = ["nodejs-20"]
 [nix]
-channel = "stable-24_05"
+channel = "stable-25_05"
+packages = ["unzip"]
 
-[[ports]]
-localPort = 5000
-externalPort = 80
-
-[env]
-PORT = "5000"
-
-[deployment]
-deploymentTarget = "autoscale"
-run = ["node", "./dist/index.cjs"]
-build = ["npm", "run", "build"]
-publicDir = "dist/public"
+[agent]
+expertMode = true
 
 [workflows]
 runButton = "Project"
@@ -28,13 +16,16 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "Run App"
 
 [[workflows.workflow]]
-name = "Start application"
+name = "Run App"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
+args = "npm install && npm run dev"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
