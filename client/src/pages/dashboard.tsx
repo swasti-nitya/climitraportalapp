@@ -1,15 +1,18 @@
 import { useUser } from "@/hooks/use-auth";
 import { useExpensesList } from "@/hooks/use-expenses";
 import { ExpenseCard } from "@/components/ExpenseCard";
-import { Loader2, Receipt, Filter } from "lucide-react";
+import { Loader2, Receipt, Filter, User as UserIcon } from "lucide-react";
 import { useState } from "react";
 
 export default function Dashboard() {
   const { data: user } = useUser();
   const { data: expenses, isLoading, error } = useExpensesList();
-  const [filter, setFilter] = useState<string>('All');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [userFilter, setUserFilter] = useState<string>('All');
   
   const isAdmin = user?.role === 'Super Admin';
+
+  const uniqueUsers = Array.from(new Set(expenses?.map(e => e.user?.name).filter(Boolean))) as string[];
 
   if (isLoading) {
     return (
@@ -29,8 +32,9 @@ export default function Dashboard() {
   }
 
   const filteredExpenses = expenses?.filter(e => {
-    if (filter === 'All') return true;
-    return e.status === filter;
+    const matchesStatus = statusFilter === 'All' || e.status === statusFilter;
+    const matchesUser = userFilter === 'All' || e.user?.name === userFilter;
+    return matchesStatus && matchesUser;
   }).sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   const totalAmount = filteredExpenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
@@ -43,24 +47,45 @@ export default function Dashboard() {
         <p className="text-emerald-50 font-medium mb-1 relative z-10">
           {isAdmin ? "Total Company Expenses" : "My Total Expenses"}
         </p>
-        <h2 className="text-4xl font-bold font-display relative z-10">${totalAmount.toFixed(2)}</h2>
+        <h2 className="text-4xl font-bold font-display relative z-10">₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h2>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold font-display text-foreground">Recent Activity</h3>
-        <div className="relative">
-          <select 
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="appearance-none bg-secondary/50 text-foreground text-sm font-semibold pl-4 pr-8 py-2 rounded-full border-none focus:ring-2 focus:ring-primary/20 outline-none"
-          >
-            <option value="All">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-          </select>
-          <Filter className="w-3.5 h-3.5 text-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="space-y-4 mb-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold font-display text-foreground">Recent Activity</h3>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <div className="relative flex-1 min-w-[140px]">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full appearance-none bg-secondary/50 text-foreground text-xs font-semibold pl-3 pr-8 py-2 rounded-full border-none focus:ring-2 focus:ring-primary/20 outline-none"
+            >
+              <option value="All">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <Filter className="w-3 h-3 text-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
+          {isAdmin && (
+            <div className="relative flex-1 min-w-[140px]">
+              <select 
+                value={userFilter}
+                onChange={(e) => setUserFilter(e.target.value)}
+                className="w-full appearance-none bg-secondary/50 text-foreground text-xs font-semibold pl-3 pr-8 py-2 rounded-full border-none focus:ring-2 focus:ring-primary/20 outline-none"
+              >
+                <option value="All">All Users</option>
+                {uniqueUsers.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+              <UserIcon className="w-3 h-3 text-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
         </div>
       </div>
 

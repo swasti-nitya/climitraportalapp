@@ -41,7 +41,7 @@ export function ExpenseCard({ expense, isAdmin }: ExpenseCardProps) {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl font-bold text-foreground font-display">
-              ${Number(expense.amount).toFixed(2)}
+              ₹{Number(expense.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             <StatusBadge status={expense.status} />
           </div>

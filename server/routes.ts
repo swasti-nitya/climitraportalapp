@@ -209,51 +209,6 @@ async function seedDatabase() {
         });
       }
       console.log('Seeded database with users.');
-      
-      // Create some initial dummy expenses
-      const swasti = await storage.getUserByUsername('swasti@climitra.com');
-      const aryaman = await storage.getUserByUsername('aryaman@climitra.com');
-      
-      if (swasti) {
-        await storage.createExpense({
-          userId: swasti.id,
-          date: '2026-03-02',
-          amount: '1250.50',
-          paidTo: 'Office Supplies Vendor',
-          category: 'Supplies',
-          description: 'Pens, notebooks, and printer ink',
-          remarks: 'Needed for new hires',
-          paymentProofUrl: null,
-          invoiceUrl: null,
-        });
-        
-        await storage.createExpense({
-          userId: swasti.id,
-          date: '2026-03-01',
-          amount: '450.00',
-          paidTo: 'Local Cafe',
-          category: 'Food',
-          description: 'Team lunch',
-          remarks: null,
-          paymentProofUrl: null,
-          invoiceUrl: null,
-        });
-      }
-      
-      if (aryaman) {
-        await storage.createExpense({
-          userId: aryaman.id,
-          date: '2026-02-28',
-          amount: '5000.00',
-          paidTo: 'Cloud Hosting Provider',
-          category: 'Software',
-          description: 'Monthly server costs',
-          remarks: 'Approved per budget',
-          paymentProofUrl: null,
-          invoiceUrl: null,
-        });
-      }
-      console.log('Seeded database with dummy expenses.');
     }
   } catch (error) {
     console.error('Error seeding database:', error);

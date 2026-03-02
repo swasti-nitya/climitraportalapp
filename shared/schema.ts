@@ -15,7 +15,7 @@ export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   date: text("date").notNull(), // ISO date string or formatted date
-  amount: numeric("amount").notNull(),
+  amount: numeric("amount").notNull(), // INR is standard numeric
   paidTo: text("paid_to").notNull(),
   category: text("category").notNull(),
   description: text("description").notNull(),
