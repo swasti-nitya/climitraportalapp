@@ -109,9 +109,9 @@ export default function AddExpense() {
         <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/80 rounded-xl cursor-pointer hover:bg-secondary/30 transition-colors bg-background">
           <div className="flex flex-col items-center justify-center pt-5 pb-6 text-muted-foreground group-hover:text-primary transition-colors">
             <UploadCloud className="w-6 h-6 mb-2" />
-            <p className="text-xs font-medium">Click to upload or take photo</p>
+            <p className="text-xs font-medium">Click to upload JPEG, PNG or PDF</p>
           </div>
-          <input type="file" className="hidden" accept="image/*,.pdf" capture="environment" onChange={(e) => handleFileChange(e, type)} />
+          <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileChange(e, type)} />
         </label>
       )}
     </div>
