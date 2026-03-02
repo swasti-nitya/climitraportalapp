@@ -98,7 +98,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-1">No expenses found</h3>
             <p className="text-muted-foreground text-sm">
-              {filter !== 'All' ? `You don't have any ${filter.toLowerCase()} expenses.` : "Start by adding a new expense."}
+              {statusFilter !== 'All' ? `You don't have any ${statusFilter.toLowerCase()} expenses.` : "Start by adding a new expense."}
             </p>
           </div>
         ) : (
