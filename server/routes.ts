@@ -4,12 +4,13 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import fs from "fs";
 import path from "path";
 import express from "express";
+import { pool } from "./db";
 
-const SessionStore = MemoryStore(session);
+const PgSession = connectPgSimple(session);
 
 declare module 'express-session' {
   interface SessionData {
@@ -21,14 +22,31 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction) {
+    app.set('trust proxy', 1);
+  }
+
   // Session setup
   app.use(
     session({
+      name: 'climitra.sid',
       secret: process.env.SESSION_SECRET || 'secret123',
       resave: false,
       saveUninitialized: false,
-      store: new SessionStore({ checkPeriod: 86400000 }),
-      cookie: { maxAge: 86400000 },
+      proxy: isProduction,
+      store: new PgSession({
+        pool,
+        tableName: 'user_sessions',
+        createTableIfMissing: true,
+      }),
+      cookie: {
+        maxAge: 86400000,
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: isProduction,
+      },
     })
   );
 
