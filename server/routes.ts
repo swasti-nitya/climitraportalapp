@@ -33,10 +33,13 @@ export async function registerRoutes(
   );
 
   // Ensure uploads directory exists
-  const uploadsDir = path.join(process.cwd(), 'client', 'public', 'uploads');
+  const uploadsDir = path.join(process.cwd(), 'uploads');
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(uploadsDir));
 
   // Routes
 
