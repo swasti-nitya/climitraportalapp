@@ -35,7 +35,7 @@ export default function Login() {
           <h1 className="text-3xl font-bold font-display text-foreground tracking-tight mb-2">
             Climitra Employee Portal
           </h1>
-          <p className="text-muted-foreground">Log in to manage your reimbursements</p>
+          <p className="text-muted-foreground">Manage expenses and leaves</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border/50">
