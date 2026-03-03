@@ -9,8 +9,11 @@ import { Loader2 } from "lucide-react";
 // Pages & Components
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
+import PortalSelection from "@/pages/portal-selection";
 import Dashboard from "@/pages/dashboard";
 import AddExpense from "@/pages/add-expense";
+import LeavesDashboard from "@/pages/leaves-dashboard";
+import Profile from "@/pages/profile";
 import { MobileLayout } from "@/components/MobileLayout";
 
 // Auth Guard Component
@@ -55,11 +58,23 @@ function Router() {
       </Route>
       
       <Route path="/">
+        {user ? <PortalSelection /> : <Redirect to="/login" />}
+      </Route>
+
+      <Route path="/expenses">
         <ProtectedRoute component={Dashboard} />
       </Route>
       
-      <Route path="/add">
+      <Route path="/expenses/add">
         <ProtectedRoute component={AddExpense} />
+      </Route>
+
+      <Route path="/leaves">
+        <ProtectedRoute component={LeavesDashboard} />
+      </Route>
+
+      <Route path="/profile">
+        <ProtectedRoute component={Profile} />
       </Route>
 
       <Route component={NotFound} />

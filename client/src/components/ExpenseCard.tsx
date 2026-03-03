@@ -1,9 +1,10 @@
 import { format } from "date-fns";
-import { FileText, Image as ImageIcon, Receipt, User as UserIcon } from "lucide-react";
+import { FileText, Image as ImageIcon, Receipt, User as UserIcon, Download } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { useUpdateExpenseStatus } from "@/hooks/use-expenses";
 import { useToast } from "@/hooks/use-toast";
 import type { ExpenseWithUser } from "@shared/schema";
+import { useState } from "react";
 
 interface ExpenseCardProps {
   expense: ExpenseWithUser;
@@ -13,6 +14,7 @@ interface ExpenseCardProps {
 export function ExpenseCard({ expense, isAdmin }: ExpenseCardProps) {
   const { mutate: updateStatus, isPending } = useUpdateExpenseStatus();
   const { toast } = useToast();
+  const [expandedImages, setExpandedImages] = useState<{ proof?: boolean; invoice?: boolean }>({});
 
   const handleStatusUpdate = (status: 'Approved' | 'Rejected') => {
     updateStatus(
@@ -81,31 +83,116 @@ export function ExpenseCard({ expense, isAdmin }: ExpenseCardProps) {
       {/* Attachments Section */}
       {(expense.paymentProofUrl || expense.invoiceUrl) && (
         <div className="border-t border-border/50 pt-4 mt-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Attachments</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Attachments</p>
+          
+          <div className="flex flex-wrap gap-3">
             {expense.paymentProofUrl && (
-              <a 
-                href={expense.paymentProofUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-medium bg-primary/5 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+              <button
+                onClick={() => setExpandedImages(prev => ({ ...prev, proof: true }))}
+                className="flex items-center gap-1.5 text-xs font-medium bg-primary/5 hover:bg-primary/10 text-primary px-3 py-1.5 rounded-lg transition-colors border border-primary/20"
               >
                 <ImageIcon className="w-3.5 h-3.5" />
-                Proof
-              </a>
+                Payment Proof
+              </button>
             )}
+
             {expense.invoiceUrl && (
-              <a 
-                href={expense.invoiceUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-medium bg-primary/5 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+              <button
+                onClick={() => setExpandedImages(prev => ({ ...prev, invoice: true }))}
+                className="flex items-center gap-1.5 text-xs font-medium bg-primary/5 hover:bg-primary/10 text-primary px-3 py-1.5 rounded-lg transition-colors border border-primary/20"
               >
                 <Receipt className="w-3.5 h-3.5" />
                 Invoice
-              </a>
+              </button>
             )}
           </div>
+
+          {/* Modal Backdrop */}
+          {(expandedImages.proof || expandedImages.invoice) && (
+            <div 
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setExpandedImages({})}
+            >
+              <div 
+                className="bg-background rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-auto shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {expandedImages.proof && (
+                  <div className="p-4">
+                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-border/50">
+                      <h3 className="font-semibold text-foreground">Payment Proof</h3>
+                      <div className="flex gap-2">
+                        <a 
+                          href={expense.paymentProofUrl} 
+                          download
+                          className="text-xs text-primary hover:text-primary/80 px-3 py-1.5 bg-primary/5 rounded hover:bg-primary/10 transition-colors flex items-center gap-1"
+                        >
+                          <Download className="w-3 h-3" />
+                          Download
+                        </a>
+                        <button
+                          onClick={() => setExpandedImages({})}
+                          className="text-xl text-muted-foreground hover:text-foreground w-8 h-8 flex items-center justify-center"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                    {expense.paymentProofUrl.toLowerCase().endsWith('.pdf') ? (
+                      <iframe 
+                        src={expense.paymentProofUrl} 
+                        className="w-full h-[60vh] border border-border/50 rounded"
+                        title="Payment Proof PDF"
+                      />
+                    ) : (
+                      <img 
+                        src={expense.paymentProofUrl} 
+                        alt="Payment Proof"
+                        className="w-full h-auto rounded"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {expandedImages.invoice && (
+                  <div className="p-4">
+                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-border/50">
+                      <h3 className="font-semibold text-foreground">Invoice</h3>
+                      <div className="flex gap-2">
+                        <a 
+                          href={expense.invoiceUrl} 
+                          download
+                          className="text-xs text-primary hover:text-primary/80 px-3 py-1.5 bg-primary/5 rounded hover:bg-primary/10 transition-colors flex items-center gap-1"
+                        >
+                          <Download className="w-3 h-3" />
+                          Download
+                        </a>
+                        <button
+                          onClick={() => setExpandedImages({})}
+                          className="text-xl text-muted-foreground hover:text-foreground w-8 h-8 flex items-center justify-center"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                    {expense.invoiceUrl.toLowerCase().endsWith('.pdf') ? (
+                      <iframe 
+                        src={expense.invoiceUrl} 
+                        className="w-full h-[60vh] border border-border/50 rounded"
+                        title="Invoice PDF"
+                      />
+                    ) : (
+                      <img 
+                        src={expense.invoiceUrl} 
+                        alt="Invoice"
+                        className="w-full h-auto rounded"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

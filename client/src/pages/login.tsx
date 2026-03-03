@@ -33,7 +33,7 @@ export default function Login() {
             <Wallet className="w-8 h-8 text-white -rotate-3" />
           </div>
           <h1 className="text-3xl font-bold font-display text-foreground tracking-tight mb-2">
-            Expense Tracker
+            Climitra Employee Portal
           </h1>
           <p className="text-muted-foreground">Log in to manage your reimbursements</p>
         </div>

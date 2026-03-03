@@ -76,6 +76,34 @@ export async function registerRoutes(
     res.json({ id: user.id, username: user.username, name: user.name, role: user.role });
   });
 
+  app.put(api.auth.changePassword.path, async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const input = api.auth.changePassword.input.parse(req.body);
+      const user = await storage.getUser(req.session.userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      if (user.password !== input.currentPassword) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      await storage.updateUserPassword(req.session.userId, input.newPassword);
+      
+      res.json({ message: "Password updated successfully" });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to update password" });
+    }
+  });
+
   app.get(api.expenses.list.path, async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
     
@@ -172,6 +200,153 @@ export async function registerRoutes(
       }
       console.error("Upload error:", err);
       res.status(500).json({ message: "Failed to upload file" });
+    }
+  });
+
+  // Leave Management Routes
+  app.get(api.leaves.list.path, async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    let leavesList;
+    if (user.role === 'Super Admin') {
+      leavesList = await storage.getLeaves();
+    } else {
+      leavesList = await storage.getLeavesByUserId(user.id);
+    }
+    res.json(leavesList);
+  });
+
+  app.get(api.leaves.count.path, async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      const userId = parseInt(req.params.userId, 10);
+      
+      // Check authorization
+      const currentUser = await storage.getUser(req.session.userId);
+      if (currentUser?.role !== 'Super Admin' && currentUser?.id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const leaveCount = await storage.getLeaveCount(userId);
+      res.json(leaveCount);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post(api.leaves.create.path, async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      const bodySchema = z.object({
+        startDate: z.string(),
+        endDate: z.string(),
+        type: z.enum(['Leave', 'Work From Home']),
+        reason: z.string(),
+        numberOfDays: z.number().positive(),
+      });
+      
+      const input = bodySchema.parse(req.body);
+      
+      const leave = await storage.createLeave({
+        ...input,
+        userId: req.session.userId,
+      });
+      
+      res.status(201).json(leave);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      console.error("Error creating leave:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch(api.leaves.updateStatus.path, async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'Super Admin') {
+      return res.status(403).json({ message: "Unauthorized: Super Admin access required" });
+    }
+
+    try {
+      const bodySchema = z.object({
+        status: z.enum(['Approved', 'Rejected']),
+        approvalRemark: z.string().optional(),
+      });
+      
+      const input = bodySchema.parse(req.body);
+      const leaveId = parseInt(req.params.id, 10);
+      
+      const updated = await storage.updateLeaveStatus(
+        leaveId,
+        input.status,
+        req.session.userId,
+        input.approvalRemark
+      );
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Leave not found" });
+      }
+      
+      res.json(updated);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Holiday routes
+  app.get(api.holidays.list.path, async (req, res) => {
+    const holidays = await storage.getHolidays();
+    res.json(holidays);
+  });
+
+  app.post(api.holidays.create.path, async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'Super Admin') {
+      return res.status(403).json({ message: "Only Super Admin can add holidays" });
+    }
+
+    try {
+      const input = api.holidays.create.input.parse(req.body);
+      const holiday = await storage.createHoliday(input);
+      res.status(201).json(holiday);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input" });
+      }
+      res.status(500).json({ message: "Internal error" });
+    }
+  });
+
+  app.delete(api.holidays.delete.path.replace(':id', ':id'), async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'Super Admin') {
+      return res.status(403).json({ message: "Only Super Admin can delete holidays" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteHoliday(id);
+      res.json({ message: "Holiday deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal error" });
     }
   });
 

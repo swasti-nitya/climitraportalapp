@@ -36,7 +36,20 @@ export default function AddExpense() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'proof' | 'invoice') => {
     if (e.target.files && e.target.files[0]) {
-      setFiles(prev => ({ ...prev, [type]: e.target.files![0] }));
+      const file = e.target.files[0];
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      
+      if (file.size > maxSize) {
+        toast({
+          title: "File Size Exceeded",
+          description: `${file.name} is too large. Maximum file size is 5MB.`,
+          variant: "destructive"
+        });
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
+      setFiles(prev => ({ ...prev, [type]: file }));
     }
   };
 
@@ -46,6 +59,16 @@ export default function AddExpense() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!files.proof || !files.invoice) {
+      toast({
+        title: "Missing Files",
+        description: "Please upload both payment proof and invoice.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -205,7 +228,7 @@ export default function AddExpense() {
 
         <div className="pt-2 border-t border-border/50">
           <FileInputBox title="Payment Proof" type="proof" file={files.proof} />
-          <FileInputBox title="Invoice (Optional)" type="invoice" file={files.invoice} />
+          <FileInputBox title="Invoice" type="invoice" file={files.invoice} />
         </div>
 
         <button

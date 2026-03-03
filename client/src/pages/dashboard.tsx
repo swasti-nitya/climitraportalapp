@@ -1,7 +1,7 @@
 import { useUser } from "@/hooks/use-auth";
 import { useExpensesList } from "@/hooks/use-expenses";
 import { ExpenseCard } from "@/components/ExpenseCard";
-import { Loader2, Receipt, Filter, User as UserIcon } from "lucide-react";
+import { Loader2, Receipt, Filter, User as UserIcon, Calendar } from "lucide-react";
 import { useState } from "react";
 
 export default function Dashboard() {
@@ -9,6 +9,8 @@ export default function Dashboard() {
   const { data: expenses, isLoading, error } = useExpensesList();
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [userFilter, setUserFilter] = useState<string>('All');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   
   const isAdmin = user?.role === 'Super Admin';
 
@@ -34,7 +36,21 @@ export default function Dashboard() {
   const filteredExpenses = expenses?.filter(e => {
     const matchesStatus = statusFilter === 'All' || e.status === statusFilter;
     const matchesUser = userFilter === 'All' || e.user?.name === userFilter;
-    return matchesStatus && matchesUser;
+    
+    let matchesDateRange = true;
+    if (startDate || endDate) {
+      const expenseDate = new Date(e.date).getTime();
+      if (startDate) {
+        const start = new Date(startDate).getTime();
+        matchesDateRange = matchesDateRange && expenseDate >= start;
+      }
+      if (endDate) {
+        const end = new Date(endDate).getTime();
+        matchesDateRange = matchesDateRange && expenseDate <= end;
+      }
+    }
+    
+    return matchesStatus && matchesUser && matchesDateRange;
   }).sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   const totalAmount = filteredExpenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
@@ -54,6 +70,41 @@ export default function Dashboard() {
       <div className="space-y-4 mb-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold font-display text-foreground">Recent Activity</h3>
+        </div>
+        
+        {/* Date Range Filter */}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">From</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 bg-secondary/50 text-foreground text-xs font-semibold rounded-full border-none focus:ring-2 focus:ring-primary/20 outline-none"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">To</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 bg-secondary/50 text-foreground text-xs font-semibold rounded-full border-none focus:ring-2 focus:ring-primary/20 outline-none"
+            />
+          </div>
+          {(startDate || endDate) && (
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="px-3 py-2 text-xs font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-full transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          )}
         </div>
         
         <div className="flex flex-wrap gap-2">
