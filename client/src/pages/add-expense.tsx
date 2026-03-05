@@ -100,7 +100,7 @@ export default function AddExpense() {
         title: "Success!",
         description: "Your expense has been submitted for approval.",
       });
-      setLocation("/");
+      setLocation("/dashboard");
       
     } catch (error: any) {
       toast({
