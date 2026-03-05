@@ -28,6 +28,19 @@ export async function registerRoutes(
     app.set('trust proxy', 1);
   }
 
+  // Ensure session table exists (avoids connect-pg-simple reading table.sql from bundled dist)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      sid varchar NOT NULL COLLATE "default" PRIMARY KEY,
+      sess json NOT NULL,
+      expire timestamp(6) NOT NULL
+    )
+  `);
+
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS IDX_user_sessions_expire ON user_sessions (expire)`
+  );
+
   // Session setup
   app.use(
     session({
@@ -39,7 +52,6 @@ export async function registerRoutes(
       store: new PgSession({
         pool,
         tableName: 'user_sessions',
-        createTableIfMissing: true,
       }),
       cookie: {
         maxAge: 86400000,
