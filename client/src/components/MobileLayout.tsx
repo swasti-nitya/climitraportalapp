@@ -58,36 +58,37 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 pb-24">
+        <main className="flex-1 overflow-y-auto p-4 pb-20">
           {children}
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="glass-card fixed md:absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md pb-safe rounded-t-[2rem] px-6 py-4 flex justify-between items-center z-50">
-          <Link href={getHomeLink()} className="flex-1">
+        <nav className="glass-card fixed md:absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md pb-safe rounded-t-[2rem] px-6 py-4 flex justify-around items-center z-50">
+          <Link href={getHomeLink()}>
             <div className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${(location === '/expenses' || location === '/leaves') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
               <Home className="w-6 h-6" />
               <span className="text-[10px] font-medium">Home</span>
             </div>
           </Link>
           
-          <div className="flex-1 flex justify-center relative -top-6">
-            <Link href={getAddLink()}>
-              <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-primary/30 cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-                <PlusCircle className="w-7 h-7" />
-              </div>
-            </Link>
-          </div>
+          {/* Only show + button for expense tracker, not leave tracker */}
+          {!location.startsWith('/leaves') && (
+            <div className="relative -top-6">
+              <Link href="/expenses/add">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-primary/30 cursor-pointer hover:scale-105 active:scale-95 transition-transform">
+                  <PlusCircle className="w-7 h-7" />
+                </div>
+              </Link>
+            </div>
+          )}
 
-          <div className="flex-1 flex justify-end">
-            <button 
-              onClick={() => logout()}
-              className="flex flex-col items-center gap-1 text-muted-foreground hover:text-rose-500 transition-colors"
-            >
-              <LogOut className="w-6 h-6" />
-              <span className="text-[10px] font-medium">Logout</span>
-            </button>
-          </div>
+          <button 
+            onClick={() => logout()}
+            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-rose-500 transition-colors"
+          >
+            <LogOut className="w-6 h-6" />
+            <span className="text-[10px] font-medium">Logout</span>
+          </button>
         </nav>
       </div>
     </div>
