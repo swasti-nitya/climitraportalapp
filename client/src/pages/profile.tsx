@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useUser } from "@/hooks/use-auth";
 import { useChangePassword } from "@/hooks/use-profile";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +8,7 @@ import { Loader2, Lock, User as UserIcon, Mail, Shield } from "lucide-react";
 export default function Profile() {
   const { data: user } = useUser();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { mutateAsync: changePassword, isPending } = useChangePassword();
   
   const [formData, setFormData] = useState({
@@ -48,6 +50,11 @@ export default function Profile() {
       });
       
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      
+      // Redirect back to the correct portal
+      const currentPortal = sessionStorage.getItem('currentPortal') || 'expenses';
+      const redirectPath = currentPortal === 'leaves' ? '/leaves' : '/expenses';
+      navigate(redirectPath);
     } catch (error: any) {
       toast({
         title: "Error",

@@ -71,8 +71,8 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
           
-          {/* Only show + button for expense tracker, not leave tracker */}
-          {!location.startsWith('/leaves') && (
+          {/* Only show + button for expense tracker, not leave tracker or profile */}
+          {!location.startsWith('/leaves') && location !== '/profile' && (
             <div className="relative -top-6">
               <Link href="/expenses/add">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-primary/30 cursor-pointer hover:scale-105 active:scale-95 transition-transform">
