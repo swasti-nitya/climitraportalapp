@@ -275,6 +275,7 @@ export class DatabaseStorage implements IStorage {
       'shubhankar@climitra.com': { plannedRemaining: 25, sickRemaining: 5 },
       'aman@climitra.com': { plannedRemaining: 13, sickRemaining: 2 },
       'sanskriti@climitra.com': { plannedRemaining: 22, sickRemaining: 4 },
+      'shaurya@climitra.com': { plannedRemaining: 25, sickRemaining: 5 },
 
       // name/local-part fallbacks
       shrinivas: { plannedRemaining: 23, sickRemaining: 5 },
