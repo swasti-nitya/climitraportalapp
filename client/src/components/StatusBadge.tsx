@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, BadgeIndianRupee } from "lucide-react";
 
 interface StatusBadgeProps {
   status: string;
@@ -13,6 +13,11 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         return {
           bg: "bg-emerald-100 text-emerald-800 border-emerald-200",
           icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+        };
+      case "Paid":
+        return {
+          bg: "bg-blue-100 text-blue-800 border-blue-200",
+          icon: <BadgeIndianRupee className="w-3.5 h-3.5 mr-1" />
         };
       case "Rejected":
         return {

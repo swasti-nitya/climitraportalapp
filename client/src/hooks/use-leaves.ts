@@ -34,6 +34,7 @@ export function useCreateLeave() {
       startDate: string;
       endDate: string;
       type: "Leave" | "Work From Home";
+      leaveCategory?: "Planned" | "Sick";
       reason: string;
       numberOfDays: number;
     }) => {

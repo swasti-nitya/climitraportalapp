@@ -3,7 +3,8 @@ import { useLocation } from "wouter";
 import { useUser } from "@/hooks/use-auth";
 import { useChangePassword } from "@/hooks/use-profile";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Lock, User as UserIcon, Mail, Shield } from "lucide-react";
+import { Loader2, Lock, User as UserIcon, Mail, Shield, Calendar } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Profile() {
   const { data: user } = useUser();
@@ -109,6 +110,16 @@ export default function Profile() {
               <div>
                 <p className="text-xs text-muted-foreground">Role</p>
                 <p className="text-sm font-medium text-foreground">{user.role}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+              <Calendar className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Joining Date</p>
+                <p className="text-sm font-medium text-foreground">
+                  {user.joiningDate ? format(new Date(user.joiningDate), "MMM d, yyyy") : "Not set"}
+                </p>
               </div>
             </div>
           </div>

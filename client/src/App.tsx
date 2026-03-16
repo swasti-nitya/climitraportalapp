@@ -14,6 +14,7 @@ import Dashboard from "@/pages/dashboard";
 import AddExpense from "@/pages/add-expense";
 import LeavesDashboard from "@/pages/leaves-dashboard";
 import Profile from "@/pages/profile";
+import CAExpensesPage from "./pages/ca-expenses";
 import { MobileLayout } from "@/components/MobileLayout";
 
 // Auth Guard Component
@@ -58,23 +59,27 @@ function Router() {
       </Route>
       
       <Route path="/">
-        {user ? <PortalSelection /> : <Redirect to="/login" />}
+        {user ? (user.role === 'CA' ? <Redirect to="/ca-expenses" /> : <PortalSelection />) : <Redirect to="/login" />}
       </Route>
 
       <Route path="/expenses">
-        <ProtectedRoute component={Dashboard} />
+        {user?.role === 'CA' ? <Redirect to="/ca-expenses" /> : <ProtectedRoute component={Dashboard} />}
       </Route>
       
       <Route path="/expenses/add">
-        <ProtectedRoute component={AddExpense} />
+        {user?.role === 'CA' ? <Redirect to="/ca-expenses" /> : <ProtectedRoute component={AddExpense} />}
       </Route>
 
       <Route path="/leaves">
-        <ProtectedRoute component={LeavesDashboard} />
+        {user?.role === 'CA' ? <Redirect to="/ca-expenses" /> : <ProtectedRoute component={LeavesDashboard} />}
       </Route>
 
       <Route path="/profile">
-        <ProtectedRoute component={Profile} />
+        {user?.role === 'CA' ? <Redirect to="/ca-expenses" /> : <ProtectedRoute component={Profile} />}
+      </Route>
+
+      <Route path="/ca-expenses">
+        {user?.role === 'CA' ? <ProtectedRoute component={CAExpensesPage} /> : <Redirect to="/" />}
       </Route>
 
       <Route component={NotFound} />

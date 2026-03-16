@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   role: text("role").notNull().default("User"), // 'Super Admin' | 'User'
   totalLeavesAllowed: integer("total_leaves_allowed").notNull().default(30),
+  joiningDate: text("joining_date"), // ISO date string
 });
 
 export const expenses = pgTable("expenses", {
@@ -24,6 +25,13 @@ export const expenses = pgTable("expenses", {
   paymentProofUrl: text("payment_proof_url"),
   invoiceUrl: text("invoice_url"),
   status: text("status").notNull().default("Pending"), // 'Pending' | 'Approved' | 'Rejected'
+  isFlagged: boolean("is_flagged").notNull().default(false),
+  flagReason: text("flag_reason"),
+  mealParticipantCount: integer("meal_participant_count").notNull().default(1),
+  mealParticipants: text("meal_participants"),
+  stayParticipantCount: integer("stay_participant_count").notNull().default(1),
+  stayCheckIn: text("stay_check_in"),
+  stayCheckOut: text("stay_check_out"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -33,6 +41,7 @@ export const leaves = pgTable("leaves", {
   startDate: text("start_date").notNull(), // ISO date string
   endDate: text("end_date").notNull(), // ISO date string
   type: text("type").notNull(), // 'Leave' | 'Work From Home'
+  leaveCategory: text("leave_category"), // 'Planned' | 'Sick' (for type='Leave')
   reason: text("reason").notNull(),
   numberOfDays: integer("number_of_days").notNull(),
   status: text("status").notNull().default("Pending"), // 'Pending' | 'Approved' | 'Rejected'
@@ -68,7 +77,7 @@ export const leavesRelations = relations(leaves, ({ one }) => ({
 }));
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
-export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, userId: true, status: true, createdAt: true });
+export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, userId: true, status: true, createdAt: true, isFlagged: true });
 export const insertLeaveSchema = createInsertSchema(leaves).omit({ id: true, userId: true, status: true, approvedBy: true, approvalRemark: true, createdAt: true });
 export const insertHolidaySchema = createInsertSchema(holidays).omit({ id: true, createdAt: true });
 

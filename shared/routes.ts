@@ -13,7 +13,8 @@ const userSchema = z.object({
   id: z.number(),
   username: z.string(),
   name: z.string(),
-  role: z.string()
+  role: z.string(),
+  joiningDate: z.string().nullable(),
 });
 
 const expenseWithUserSchema = z.object({
@@ -28,6 +29,13 @@ const expenseWithUserSchema = z.object({
   paymentProofUrl: z.string().nullable(),
   invoiceUrl: z.string().nullable(),
   status: z.string(),
+  isFlagged: z.boolean(),
+  flagReason: z.string().nullable(),
+  mealParticipantCount: z.number(),
+  mealParticipants: z.string().nullable(),
+  stayParticipantCount: z.number(),
+  stayCheckIn: z.string().nullable(),
+  stayCheckOut: z.string().nullable(),
   createdAt: z.string().nullable(),
   user: userSchema.optional()
 });
@@ -38,6 +46,7 @@ const leaveWithUserSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   type: z.string(),
+  leaveCategory: z.string().nullable(),
   reason: z.string(),
   numberOfDays: z.number(),
   status: z.string(),
@@ -87,6 +96,14 @@ export const api = {
         401: errorSchemas.unauthorized,
       },
     },
+    users: {
+      method: 'GET' as const,
+      path: '/api/users' as const,
+      responses: {
+        200: z.array(userSchema),
+        401: errorSchemas.unauthorized,
+      },
+    },
   },
   expenses: {
     list: {
@@ -107,10 +124,22 @@ export const api = {
         401: errorSchemas.unauthorized,
       }
     },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/expenses/:id' as const,
+      input: insertExpenseSchema,
+      responses: {
+        200: expenseWithUserSchema,
+        400: errorSchemas.validation,
+        401: errorSchemas.unauthorized,
+        403: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      }
+    },
     updateStatus: {
       method: 'PATCH' as const,
       path: '/api/expenses/:id/status' as const,
-      input: z.object({ status: z.enum(['Pending', 'Approved', 'Rejected']) }),
+      input: z.object({ status: z.enum(['Pending', 'Approved', 'Rejected', 'Paid']) }),
       responses: {
         200: expenseWithUserSchema,
         403: errorSchemas.unauthorized,
@@ -128,6 +157,21 @@ export const api = {
       }
     }
   },
+  ocr: {
+    extractAmount: {
+      method: 'POST' as const,
+      path: '/api/ocr/extract-amount' as const,
+      input: z.object({ filename: z.string(), content: z.string() }),
+      responses: {
+        200: z.object({
+          amount: z.number().nullable(),
+          confidence: z.enum(['high', 'medium', 'low']).optional(),
+        }),
+        401: errorSchemas.unauthorized,
+        503: errorSchemas.internal,
+      },
+    },
+  },
   leaves: {
     list: {
       method: 'GET' as const,
@@ -140,7 +184,9 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/leaves' as const,
-      input: insertLeaveSchema,
+      input: insertLeaveSchema.extend({
+        leaveCategory: z.enum(['Planned', 'Sick']).optional(),
+      }),
       responses: {
         201: leaveWithUserSchema,
         400: errorSchemas.validation,
@@ -165,9 +211,22 @@ export const api = {
       path: '/api/leaves/:userId/count' as const,
       responses: {
         200: z.object({
+          cycleStart: z.string(),
+          cycleEnd: z.string(),
+          currentMonth: z.string(),
+          plannedTotal: z.number(),
+          plannedCarryForward: z.number(),
+          plannedUsedCurrentCycle: z.number(),
+          plannedRemaining: z.number(),
+          sickTotal: z.number(),
+          sickUsedCurrentCycle: z.number(),
+          sickRemaining: z.number(),
+          wfhTotal: z.number(),
+          wfhUsedCurrentMonth: z.number(),
+          wfhRemaining: z.number(),
           totalAllowed: z.number(),
           used: z.number(),
-          remaining: z.number()
+          remaining: z.number(),
         }),
         401: errorSchemas.unauthorized,
         403: errorSchemas.unauthorized,

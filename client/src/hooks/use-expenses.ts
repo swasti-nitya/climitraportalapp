@@ -42,7 +42,7 @@ export function useCreateExpense() {
 export function useUpdateExpenseStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: 'Pending' | 'Approved' | 'Rejected' }) => {
+    mutationFn: async ({ id, status }: { id: number; status: 'Pending' | 'Approved' | 'Rejected' | 'Paid' }) => {
       const url = buildUrl(api.expenses.updateStatus.path, { id });
       const res = await fetch(url, {
         method: api.expenses.updateStatus.method,
@@ -53,6 +53,44 @@ export function useUpdateExpenseStatus() {
       
       if (!res.ok) throw new Error("Failed to update status");
       return api.expenses.updateStatus.responses[200].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.expenses.list.path] });
+    },
+  });
+}
+
+export function useUpdateExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: z.infer<typeof api.expenses.update.input>;
+    }) => {
+      const url = buildUrl(api.expenses.update.path, { id });
+      const res = await fetch(url, {
+        method: api.expenses.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: "Failed to update expense" }));
+        throw new Error(error.message || "Failed to update expense");
+      }
+
+      // Some deployments/proxies may return non-JSON success bodies; avoid hard failure in UI.
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await res.json();
+        return api.expenses.update.responses[200].parse(json);
+      }
+
+      return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.expenses.list.path] });

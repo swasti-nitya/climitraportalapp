@@ -21,7 +21,10 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
     return sessionStorage.getItem('currentPortal') || 'expenses';
   };
 
+  const isCa = user?.role === 'CA';
+
   const getHomeLink = () => {
+    if (isCa) return '/ca-expenses';
     return getCurrentPortal() === 'leaves' ? '/leaves' : '/expenses';
   };
 
@@ -37,20 +40,24 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         {/* Header */}
         <header className="glass-card sticky top-0 z-40 px-6 py-4 flex justify-between items-center rounded-b-[2rem] flex-shrink-0">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/')}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
-              title="Switch Portal"
-            >
-              <Grid2X2 className="w-5 h-5" />
-            </button>
+            {!isCa && (
+              <button
+                onClick={() => navigate('/')}
+                className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+                title="Switch Portal"
+              >
+                <Grid2X2 className="w-5 h-5" />
+              </button>
+            )}
             <div>
               <p className="text-sm font-medium text-muted-foreground">Hello,</p>
               <h1 className="text-xl font-bold font-display text-foreground">{user?.name}</h1>
             </div>
           </div>
           <button
-            onClick={() => navigate('/profile')}
+            onClick={() => {
+              if (!isCa) navigate('/profile');
+            }}
             className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold hover:bg-primary/20 transition-colors cursor-pointer"
           >
             {user?.name.charAt(0)}
@@ -72,7 +79,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
           </Link>
           
           {/* Only show + button for expense tracker, not leave tracker or profile */}
-          {!location.startsWith('/leaves') && location !== '/profile' && (
+          {!isCa && !location.startsWith('/leaves') && location !== '/profile' && (
             <div className="relative -top-6">
               <Link href="/expenses/add">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-primary/30 cursor-pointer hover:scale-105 active:scale-95 transition-transform">
